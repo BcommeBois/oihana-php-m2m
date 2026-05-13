@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-05-13
+
 ### Added
 
 - `oihana\m2m\M2MApiClient` — OIDC-compliant M2M HTTP client for APIs protected by JWT (RFC 7521 + RFC 7523 jwt-bearer flow).

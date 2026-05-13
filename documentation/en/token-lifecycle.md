@@ -20,7 +20,7 @@ Consumer code                M2MApiClient                  Identity Provider    
      │                            │ ── doRequest(GET /widgets, Bearer ──────────────────▶   │
      │                            │                                                         │
      │                            │ ◀────────── 200 + JSON body ──────────────────────────  │
-     │  ◀──── decoded array ─────│                                                          │
+     │  ◀──── decoded array ───── │                                                         │
 ```
 
 ## Proactive refresh
