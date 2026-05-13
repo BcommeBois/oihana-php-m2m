@@ -2,17 +2,21 @@
 
 `M2MApiClient` accepte un `Client` Guzzle pré-configuré via l'argument constructeur `$http`. C'est la façon la plus propre d'injecter des **préoccupations HTTP transversales** sans hériter — logs, retry-on-5xx, télémétrie, paramètres TLS personnalisés, configuration proxy, …
 
+> 💡 Les exemples ci-dessous utilisent les constantes typées de `oihana/php-enums` (déjà dépendance requise) plutôt que des magic strings — voir [Astuces & bonnes pratiques](../tips.md) pour le rationnel et le catalogue complet des constantes.
+
 ## Client Guzzle par défaut
 
-Quand `$http` est omis, le constructeur construit un client Guzzle par défaut avec des réglages sains :
+Quand `$http` est omis, le constructeur construit un client Guzzle par défaut avec des réglages sains (montrés ici avec les constantes typées à des fins documentaires — la bibliothèque elle-même utilise actuellement les chaînes brutes en interne) :
 
 ```php
+use oihana\enums\http\GuzzleOption;
+
 new \GuzzleHttp\Client
 (
     [
-        'http_errors' => false ,   // ne pas lever sur 4xx/5xx — laisser M2MApiClient inspecter le statut
-        'verify'      => true ,    // vérifier les certificats TLS
-        'timeout'     => 15 ,      // timeout dur de 15 secondes par requête
+        GuzzleOption::HTTP_ERRORS => false ,   // ne pas lever sur 4xx/5xx — laisser M2MApiClient inspecter le statut
+        GuzzleOption::VERIFY      => true ,    // vérifier les certificats TLS
+        GuzzleOption::TIMEOUT     => 15 ,      // timeout dur de 15 secondes par requête
     ]
 ) ;
 ```
@@ -27,18 +31,20 @@ Ces défauts sont intentionnels :
 
 ```php
 use oihana\m2m\M2MApiClient;
+use oihana\enums\http\GuzzleOption;
+use oihana\enums\http\HttpHeader;
 use GuzzleHttp\Client;
 
 $http = new Client
 (
     [
-        'http_errors' => false ,    // ⚠️ garder ceci
-        'verify'      => true ,
-        'timeout'     => 30 ,
-        'proxy'       => 'http://corporate-proxy:8080' ,
-        'headers'     =>
+        GuzzleOption::HTTP_ERRORS => false ,    // ⚠️ garder ceci
+        GuzzleOption::VERIFY      => true ,
+        GuzzleOption::TIMEOUT     => 30 ,
+        GuzzleOption::PROXY       => 'http://corporate-proxy:8080' ,
+        GuzzleOption::HEADERS     =>
         [
-            'User-Agent' => 'my-service/1.0 (+https://my-service.example.com)' ,
+            HttpHeader::USER_AGENT => 'my-service/1.0 (+https://my-service.example.com)' ,
         ] ,
     ]
 ) ;
@@ -63,6 +69,8 @@ use Monolog\Handler\StreamHandler;
 $logger = new Logger( 'm2m' ) ;
 $logger->pushHandler( new StreamHandler( '/var/log/m2m.log' , Logger::INFO ) ) ;
 
+use oihana\enums\http\GuzzleOption;
+
 $stack = HandlerStack::create() ;
 $stack->push
 (
@@ -76,10 +84,10 @@ $stack->push
 $http = new Client
 (
     [
-        'http_errors' => false ,
-        'verify'      => true ,
-        'timeout'     => 15 ,
-        'handler'     => $stack ,
+        GuzzleOption::HTTP_ERRORS => false ,
+        GuzzleOption::VERIFY      => true ,
+        GuzzleOption::TIMEOUT     => 15 ,
+        GuzzleOption::HANDLER     => $stack ,
     ]
 ) ;
 
@@ -95,6 +103,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Psr7\Response;
+use oihana\enums\http\GuzzleOption;
+use oihana\enums\http\HttpStatusCode;
 use Psr\Http\Message\RequestInterface;
 
 $stack = HandlerStack::create() ;
@@ -105,7 +115,7 @@ $stack->push
         function( int $retries , RequestInterface $request , ?Response $response = null , ?\Throwable $exception = null ) :bool
         {
             if( $retries >= 3 ) return false ;
-            if( $response !== null && $response->getStatusCode() >= 500 ) return true ;
+            if( $response !== null && $response->getStatusCode() >= HttpStatusCode::INTERNAL_SERVER_ERROR ) return true ;
             if( $exception instanceof \GuzzleHttp\Exception\ConnectException ) return true ;
             return false ;
         } ,
@@ -119,10 +129,10 @@ $stack->push
 $http = new Client
 (
     [
-        'http_errors' => false ,
-        'verify'      => true ,
-        'timeout'     => 15 ,
-        'handler'     => $stack ,
+        GuzzleOption::HTTP_ERRORS => false ,
+        GuzzleOption::VERIFY      => true ,
+        GuzzleOption::TIMEOUT     => 15 ,
+        GuzzleOption::HANDLER     => $stack ,
     ]
 ) ;
 

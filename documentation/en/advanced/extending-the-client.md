@@ -2,6 +2,8 @@
 
 `M2MApiClient` exposes three `protected` methods as **extension hooks** — subclass and override them to add per-request instrumentation, custom headers, or non-JSON envelope handling without rewriting the public verb methods.
 
+> 💡 The examples below use typed constants from `oihana/php-enums` and `oihana/php-files` (already required dependencies) instead of magic strings — see [Tips & best practices](../tips.md) for the rationale and the full constant catalogue.
+
 ## Extension hooks
 
 | Method                                                                                            | Purpose                                                                                              |
@@ -80,6 +82,10 @@ class TracingM2MClient extends M2MApiClient
 
 ```php
 use oihana\m2m\M2MApiClient;
+use oihana\enums\http\AuthScheme;
+use oihana\enums\http\GuzzleOption;
+use oihana\enums\http\HttpHeader;
+use oihana\files\enums\FileMimeType;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 
@@ -105,11 +111,11 @@ class TenantedM2MClient extends M2MApiClient
         // Easiest way : do the request ourselves with the merged headers.
         $options =
         [
-            'headers' =>
+            GuzzleOption::HEADERS =>
             [
-                'Authorization' => 'Bearer ' . $token ,
-                'Accept'        => 'application/json' ,
-                'X-Tenant-Id'   => $this->tenantId ,
+                HttpHeader::AUTHORIZATION => AuthScheme::prefix( AuthScheme::BEARER ) . $token ,
+                HttpHeader::ACCEPT        => FileMimeType::JSON ,
+                'X-Tenant-Id'             => $this->tenantId ,    // application-specific header — no constant
             ] ,
         ] ;
 
@@ -129,12 +135,16 @@ class TenantedM2MClient extends M2MApiClient
 }
 ```
 
-> **Note** : the parent's `$http` and `$apiBaseUrl` are `private`. If you need direct access, either inject your own Guzzle client at construction (see [http-client-injection.md](http-client-injection.md)) or fork and elevate those fields to `protected` for a custom-built variant.
+> **Note on private fields** : the parent's `$http` and `$apiBaseUrl` are `private`. If you need direct access, either inject your own Guzzle client at construction (see [http-client-injection.md](http-client-injection.md)) or fork and elevate those fields to `protected` for a custom-built variant.
+
+> **Note on constants** : `GuzzleOption::HEADERS`, `HttpHeader::AUTHORIZATION`, `AuthScheme::prefix(AuthScheme::BEARER)`, `FileMimeType::JSON` come from `oihana/php-enums` and `oihana/php-files` (already required by `oihana/php-m2m`). See [Tips & best practices](../tips.md) for the full catalogue.
 
 ## Example 3 — typed envelope with throw-on-error semantics
 
 ```php
 use oihana\m2m\M2MApiClient;
+use oihana\enums\http\HttpStatusCode;
+use oihana\enums\Output;
 use GuzzleHttp\Psr7\Response;
 
 class StrictM2MClient extends M2MApiClient
@@ -143,11 +153,17 @@ class StrictM2MClient extends M2MApiClient
     {
         $status = $response->getStatusCode() ;
 
-        if( $status >= 400 )
+        if( HttpStatusCode::getType( $status ) === Output::ERROR )
         {
             throw new \RuntimeException
             (
-                "M2M API returned HTTP $status: " . substr( (string) $response->getBody() , 0 , 400 )
+                sprintf
+                (
+                    'M2M API returned %d %s: %s' ,
+                    $status ,
+                    HttpStatusCode::getDescription( $status ) ?? 'Unknown' ,
+                    substr( (string) $response->getBody() , 0 , 400 )
+                )
             ) ;
         }
 
@@ -155,6 +171,8 @@ class StrictM2MClient extends M2MApiClient
     }
 }
 ```
+
+> `HttpStatusCode::getType()` returns `Output::SUCCESS / REDIRECT / ERROR / INFO` based on the status code's range — no need to remember whether 5xx errors start at 500 or 600. See [Tips & best practices](../tips.md#recipe-4--typed-status-code-inspection).
 
 > ⚠️ Beware: if you override `decodeResponse()` to throw on `>= 400`, the 401 retry policy in `call()` will no longer trigger — `call()` checks the response status **before** delegating to `decodeResponse()`, but a thrown exception bubbles up regardless. To preserve the retry-on-401, also override `call()` and integrate the throw-on-error logic there.
 

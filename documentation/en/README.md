@@ -14,6 +14,10 @@
 - [Token lifecycle](token-lifecycle.md) — caching, proactive refresh, reactive retry on 401.
 - [Error handling](error-handling.md) — exception catalogue + recommended recovery actions.
 
+### Best practices
+
+- [Tips & best practices](tips.md) — typed constants from `oihana/php-enums` + `oihana/php-files` to avoid magic strings.
+
 ### Advanced
 
 - [Extending the client](advanced/extending-the-client.md) — subclassing for instrumentation, custom headers, non-JSON envelopes.

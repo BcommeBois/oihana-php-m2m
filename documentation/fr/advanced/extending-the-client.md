@@ -2,6 +2,8 @@
 
 `M2MApiClient` expose trois méthodes `protected` comme **hooks d'extension** — héritez et surchargez-les pour ajouter de l'instrumentation par requête, des en-têtes personnalisés, ou la gestion d'enveloppes non-JSON sans réécrire les méthodes verbe publiques.
 
+> 💡 Les exemples ci-dessous utilisent les constantes typées de `oihana/php-enums` et `oihana/php-files` (déjà dépendances requises) plutôt que des magic strings — voir [Astuces & bonnes pratiques](../tips.md) pour le rationnel et le catalogue complet des constantes.
+
 ## Hooks d'extension
 
 | Méthode                                                                                            | Rôle                                                                                                |
@@ -80,6 +82,10 @@ class TracingM2MClient extends M2MApiClient
 
 ```php
 use oihana\m2m\M2MApiClient;
+use oihana\enums\http\AuthScheme;
+use oihana\enums\http\GuzzleOption;
+use oihana\enums\http\HttpHeader;
+use oihana\files\enums\FileMimeType;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 
@@ -105,11 +111,11 @@ class TenantedM2MClient extends M2MApiClient
         // Approche la plus simple : refaire la requête nous-mêmes avec les en-têtes fusionnés.
         $options =
         [
-            'headers' =>
+            GuzzleOption::HEADERS =>
             [
-                'Authorization' => 'Bearer ' . $token ,
-                'Accept'        => 'application/json' ,
-                'X-Tenant-Id'   => $this->tenantId ,
+                HttpHeader::AUTHORIZATION => AuthScheme::prefix( AuthScheme::BEARER ) . $token ,
+                HttpHeader::ACCEPT        => FileMimeType::JSON ,
+                'X-Tenant-Id'             => $this->tenantId ,    // en-tête spécifique à l'application — pas de constante
             ] ,
         ] ;
 
@@ -129,12 +135,16 @@ class TenantedM2MClient extends M2MApiClient
 }
 ```
 
-> **Note** : les `$http` et `$apiBaseUrl` parent sont `private`. Si vous avez besoin d'un accès direct, soit vous injectez votre propre client Guzzle à la construction (voir [http-client-injection.md](http-client-injection.md)), soit vous forkez et élevez ces champs en `protected` pour une variante custom.
+> **Note sur les champs privés** : les `$http` et `$apiBaseUrl` parent sont `private`. Si vous avez besoin d'un accès direct, soit vous injectez votre propre client Guzzle à la construction (voir [http-client-injection.md](http-client-injection.md)), soit vous forkez et élevez ces champs en `protected` pour une variante custom.
+
+> **Note sur les constantes** : `GuzzleOption::HEADERS`, `HttpHeader::AUTHORIZATION`, `AuthScheme::prefix(AuthScheme::BEARER)`, `FileMimeType::JSON` viennent de `oihana/php-enums` et `oihana/php-files` (déjà requis par `oihana/php-m2m`). Voir [Astuces & bonnes pratiques](../tips.md) pour le catalogue complet.
 
 ## Exemple 3 — enveloppe typée avec sémantique « lever sur erreur »
 
 ```php
 use oihana\m2m\M2MApiClient;
+use oihana\enums\http\HttpStatusCode;
+use oihana\enums\Output;
 use GuzzleHttp\Psr7\Response;
 
 class StrictM2MClient extends M2MApiClient
@@ -143,11 +153,17 @@ class StrictM2MClient extends M2MApiClient
     {
         $status = $response->getStatusCode() ;
 
-        if( $status >= 400 )
+        if( HttpStatusCode::getType( $status ) === Output::ERROR )
         {
             throw new \RuntimeException
             (
-                "L'API M2M a retourné HTTP $status : " . substr( (string) $response->getBody() , 0 , 400 )
+                sprintf
+                (
+                    'L\'API M2M a retourné %d %s : %s' ,
+                    $status ,
+                    HttpStatusCode::getDescription( $status ) ?? 'Inconnu' ,
+                    substr( (string) $response->getBody() , 0 , 400 )
+                )
             ) ;
         }
 
@@ -155,6 +171,8 @@ class StrictM2MClient extends M2MApiClient
     }
 }
 ```
+
+> `HttpStatusCode::getType()` retourne `Output::SUCCESS / REDIRECT / ERROR / INFO` selon la plage du code de statut — plus besoin de retenir si les erreurs 5xx commencent à 500 ou à 600. Voir [Astuces & bonnes pratiques](../tips.md#recette-4--inspection-typée-du-code-de-statut).
 
 > ⚠️ Attention : si vous surchargez `decodeResponse()` pour lever sur `>= 400`, la politique de retry sur 401 dans `call()` ne se déclenchera plus — `call()` vérifie le statut de la réponse **avant** de déléguer à `decodeResponse()`, mais une exception levée remonte quoi qu'il arrive. Pour préserver le retry-on-401, surchargez aussi `call()` et intégrez-y la logique « lever sur erreur ».
 

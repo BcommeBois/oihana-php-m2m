@@ -167,6 +167,7 @@ Topics covered:
 - Keyfile format — full field reference, security considerations.
 - Token lifecycle — caching, proactive refresh, reactive retry on 401.
 - Error handling — exception catalogue + recommended recovery actions.
+- Tips & best practices — typed constants from `oihana/php-enums` + `oihana/php-files` to avoid magic strings.
 - Advanced — HTTP client injection, subclassing for instrumentation, non-Zitadel IdPs.
 
 ## 🧪 Running the tests
