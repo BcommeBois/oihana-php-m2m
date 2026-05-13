@@ -6,21 +6,21 @@
 
 ```
 Code consommateur            M2MApiClient                  Fournisseur d'identité      API ressource
-     │                            │                              │                          │
-     │  ── get('/widgets') ────▶ │                              │                          │
-     │                            │ ── getToken() ──┐            │                          │
-     │                            │                 │            │                          │
-     │                            │ cache miss ?    │            │                          │
-     │                            │                 ▼            │                          │
+     │                            │                               │                          │
+     │  ── get('/widgets') ────▶  │                               │                          │
+     │                            │ ── getToken() ──┐             │                          │
+     │                            │                 │             │                          │
+     │                            │ cache miss ?    │             │                          │
+     │                            │                 ▼             │                          │
      │                            │  signe l'assertion JWT bearer │                          │
-     │                            │ ── POST {issuer}{tokenPath} ▶                           │
-     │                            │                              │                          │
-     │                            │ ◀───────── 200 + access_token + expires_in ─────────────│
-     │                            │ cache token + cachedExpiresAt                           │
-     │                            │ ── doRequest(GET /widgets, Bearer ──────────────────▶ │
+     │                            │ ── POST {issuer}{tokenPath} ▶                            │
+     │                            │                              │                           │
+     │                            │ ◀───────── 200 + access_token + expires_in ───────────── │
+     │                            │ cache token + cachedExpiresAt                            │
+     │                            │ ── doRequest(GET /widgets, Bearer ──────────────────▶    │
      │                            │                                                          │
-     │                            │ ◀────────── 200 + corps JSON ────────────────────────── │
-     │  ◀──── tableau décodé ────│                                                          │
+     │                            │ ◀────────── 200 + corps JSON ──────────────────────────  │
+     │  ◀──── tableau décodé ──── │                                                          │
 ```
 
 ## Rafraîchissement proactif
