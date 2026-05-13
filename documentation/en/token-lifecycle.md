@@ -7,7 +7,7 @@
 ```
 Consumer code                M2MApiClient                  Identity Provider           Resource API
      │                            │                              │                          │
-     │  ── get('/widgets') ────▶ │                              │                          │
+     │  ── get('/widgets') ────▶  │                              │                          │
      │                            │ ── getToken() ──┐            │                          │
      │                            │                 │            │                          │
      │                            │ cache miss?     │            │                          │
@@ -17,9 +17,9 @@ Consumer code                M2MApiClient                  Identity Provider    
      │                            │                              │                          │
      │                            │ ◀───────── 200 + access_token + expires_in ─────────────│
      │                            │ cache token + cachedExpiresAt                           │
-     │                            │ ── doRequest(GET /widgets, Bearer ──────────────────▶ │
-     │                            │                                                          │
-     │                            │ ◀────────── 200 + JSON body ────────────────────────── │
+     │                            │ ── doRequest(GET /widgets, Bearer ──────────────────▶   │
+     │                            │                                                         │
+     │                            │ ◀────────── 200 + JSON body ──────────────────────────  │
      │  ◀──── decoded array ─────│                                                          │
 ```
 
