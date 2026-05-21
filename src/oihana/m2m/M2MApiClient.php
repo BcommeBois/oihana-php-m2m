@@ -3,29 +3,27 @@
 namespace oihana\m2m ;
 
 use Exception;
-use oihana\enums\http\GuzzleOption;
 use RuntimeException;
 use Throwable;
 
-use Firebase\JWT\JWT;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Psr7\Response;
 use GuzzleHttp\RequestOptions;
 
-use oihana\enums\http\AuthScheme;
-use oihana\enums\http\HttpHeader;
-use oihana\enums\http\HttpMethod;
-use oihana\files\enums\FileMimeType;
+use oihana\m2m\enums\AuthScheme;
+use oihana\m2m\enums\HttpHeader;
+use oihana\m2m\enums\HttpMethod;
+use oihana\m2m\files\FileMimeType;
 
 use oihana\m2m\exceptions\KeyfileInvalidException;
 
-use xyz\oihana\schema\auth\Keyfile;
-use xyz\oihana\schema\constants\auth\TokenRequestField;
-use xyz\oihana\schema\constants\auth\TokenRequestValue;
-use xyz\oihana\schema\constants\auth\TokenResponseField;
-use xyz\oihana\schema\constants\JWTAlgorithm;
-use xyz\oihana\schema\constants\JwtClaim;
+use oihana\m2m\schema\Keyfile;
+use oihana\m2m\schema\TokenRequestField;
+use oihana\m2m\schema\TokenRequestValue;
+use oihana\m2m\schema\TokenResponseField;
+use oihana\m2m\schema\JWTAlgorithm;
+use oihana\m2m\schema\JwtClaim;
 
 /**
  * Lightweight, OIDC-compliant M2M (machine-to-machine) client for an
@@ -99,54 +97,14 @@ class M2MApiClient
      * constructor argument (typical use case : a developer pointing
      * a staging keyfile at a local API for end-to-end testing).
      *
-     * @param array<string, mixed> $keyfile    The decoded keyfile
-     *                                          JSON. Must carry
-     *                                          `key` + `keyId` +
-     *                                          one of `userId` /
-     *                                          `clientId`.
-     * @param ?string              $issuer     Optional override
-     *                                          for `keyfile.issuer`
-     *                                          — the IdP issuer
-     *                                          URL (without
-     *                                          trailing slash —
-     *                                          rtrimmed if
-     *                                          present).
-     * @param ?string              $apiBaseUrl Optional override
-     *                                          for `keyfile.apiBaseUrl`
-     *                                          — the resource API
-     *                                          base URL (without
-     *                                          trailing slash).
-     * @param ?Client              $http       Optional pre-configured
-     *                                          Guzzle client. Useful
-     *                                          for tests or for
-     *                                          injecting middlewares
-     *                                          (logging, retry-on-5xx,
-     *                                          telemetry).
-     * @param ?string              $scope      Optional override for
-     *                                          `keyfile.scope` — the
-     *                                          OAuth2 scope to
-     *                                          request. Falls back
-     *                                          to {@see TokenRequestValue::DEFAULT_SCOPE}
-     *                                          when neither this
-     *                                          argument nor the
-     *                                          keyfile carry one.
-     * @param ?string              $tokenPath  Optional override for
-     *                                          the token endpoint
-     *                                          path on the issuer
-     *                                          host. Defaults to
-     *                                          {@see self::DEFAULT_TOKEN_PATH}
-     *                                          (`/oauth/v2/token`,
-     *                                          Zitadel convention).
-     *                                          Set this to match
-     *                                          other IdPs (e.g.
-     *                                          `/oauth/token` for
-     *                                          Auth0).
+     * @param array<string, mixed> $keyfile    The decoded keyfile JSON. Must carry `key` + `keyId` + one of `userId` / `clientId`.
+     * @param string|null          $issuer     Optional override for `keyfile.issuer` — the IdP issuer URL (without trailing slash — rtrimmed if present).
+     * @param string|null          $apiBaseUrl Optional override for `keyfile.apiBaseUrl` — the resource API base URL (without trailing slash).
+     * @param Client|null          $http       Optional pre-configured Guzzle client. Useful for tests or for injecting middlewares (logging, retry-on-5xx, telemetry).
+     * @param string|null          $scope      Optional override for `keyfile.scope` — the OAuth2 scope to request. Falls back to {@see TokenRequestValue::DEFAULT_SCOPE} when neither this argument nor the keyfile carry one.
+     * @param string|null          $tokenPath  Optional override for the token endpoint path on the issuer host. Defaults to {@see self::DEFAULT_TOKEN_PATH} (`/oauth/v2/token`, Zitadel convention). Set this to match other IdPs (e.g. `/oauth/token` for Auth0).
      *
-     * @throws RuntimeException When the keyfile lacks the required
-     *                          fields, or when `issuer` /
-     *                          `apiBaseUrl` cannot be resolved
-     *                          from either the keyfile or an
-     *                          override.
+     * @throws RuntimeException When the keyfile lacks the required fields, or when `issuer` / `apiBaseUrl` cannot be resolved from either the keyfile or an override.
      */
     public function __construct
     (
@@ -199,7 +157,7 @@ class M2MApiClient
 
         $resolvedTokenPath = $tokenPath ?? self::DEFAULT_TOKEN_PATH ;
 
-        if( !str_starts_with( $resolvedTokenPath , '/' ) )
+        if( strncmp( $resolvedTokenPath , '/' , 1 ) !== 0 )
         {
             $resolvedTokenPath = '/' . $resolvedTokenPath ;
         }
@@ -217,7 +175,7 @@ class M2MApiClient
      * in seconds. 60 seconds is more than enough — the assertion is
      * consumed immediately by the IdP and never replayed.
      */
-    public const int ASSERTION_TTL_SECONDS = 60 ;
+    public const ASSERTION_TTL_SECONDS = 60 ;
 
     /**
      * Default token endpoint path on the issuer host. Matches the
@@ -225,20 +183,20 @@ class M2MApiClient
      * argument for IdPs that expose the token endpoint elsewhere
      * (e.g. Auth0 → `/oauth/token`).
      */
-    public const string DEFAULT_TOKEN_PATH = '/oauth/v2/token' ;
+    public const DEFAULT_TOKEN_PATH = '/oauth/v2/token' ;
 
     /**
      * Default access token TTL (seconds) when the token endpoint
      * response does not carry an `expires_in` field.
      */
-    public const int DEFAULT_TOKEN_TTL = 3600 ;
+    public const DEFAULT_TOKEN_TTL = 3600 ;
 
     /**
      * Refresh the cached token this many seconds before its hard
      * expiration to avoid 401s caused by clock drift between the
      * client and the identity provider.
      */
-    public const int REFRESH_SAFETY_MARGIN = 60 ;
+    public const REFRESH_SAFETY_MARGIN = 60 ;
 
     /**
      * Resolved base URL of the resource API
@@ -321,7 +279,7 @@ class M2MApiClient
      * @throws KeyfileInvalidException
      * @throws GuzzleException
      */
-    public function delete( string $path ) :array
+    public function delete( string $path ) : array
     {
         return $this->call( HttpMethod::DELETE , $path ) ;
     }
@@ -335,18 +293,18 @@ class M2MApiClient
      * creation so the file is auto-sufficient. Pass them only to
      * override what the keyfile carries (cf. {@see __construct}).
      *
-     * @param string  $keyfilePath The absolute path to the keyfile
-     *                              JSON on disk.
-     * @param ?string $issuer      Optional override for
-     *                              `keyfile.issuer`.
-     * @param ?string $apiBaseUrl  Optional override for
-     *                              `keyfile.apiBaseUrl`.
-     * @param ?Client $http        Optional pre-configured Guzzle
-     *                              client.
-     * @param ?string $scope       Optional override for
-     *                              `keyfile.scope`.
-     * @param ?string $tokenPath   Optional override for the token
-     *                              endpoint path. See {@see __construct}.
+     * @param string      $keyfilePath The absolute path to the keyfile
+     *                                  JSON on disk.
+     * @param string|null $issuer      Optional override for
+     *                                  `keyfile.issuer`.
+     * @param string|null $apiBaseUrl  Optional override for
+     *                                  `keyfile.apiBaseUrl`.
+     * @param Client|null $http        Optional pre-configured Guzzle
+     *                                  client.
+     * @param string|null $scope       Optional override for
+     *                                  `keyfile.scope`.
+     * @param string|null $tokenPath   Optional override for the token
+     *                                  endpoint path. See {@see __construct}.
      *
      * @return self The freshly constructed M2M client.
      *
@@ -364,7 +322,7 @@ class M2MApiClient
         ?string $scope       = null ,
         ?string $tokenPath   = null
     )
-    :self
+    : self
     {
         $raw = @file_get_contents( $keyfilePath ) ;
 
@@ -396,7 +354,7 @@ class M2MApiClient
      * @throws KeyfileInvalidException
      * @throws GuzzleException
      */
-    public function get( string $path ) :array
+    public function get( string $path ) : array
     {
         return $this->call( HttpMethod::GET , $path ) ;
     }
@@ -424,7 +382,7 @@ class M2MApiClient
      *                                  bearer assertion or returns
      *                                  a 200 with an empty body.
      */
-    public function getToken() :string
+    public function getToken() : string
     {
         if( $this->cachedToken !== null && time() < $this->cachedExpiresAt - self::REFRESH_SAFETY_MARGIN )
         {
@@ -438,18 +396,17 @@ class M2MApiClient
         $keyId   = is_string( $this->keyfile[ Keyfile::KEY_ID    ] ?? null ) ? $this->keyfile[ Keyfile::KEY_ID    ] : '' ;
         $key     = is_string( $this->keyfile[ Keyfile::KEY       ] ?? null ) ? $this->keyfile[ Keyfile::KEY       ] : '' ;
 
-        $assertion = JWT::encode
+        $assertion = $this->signAssertion
         (
-            payload : [
+            [
                 JwtClaim::ISSUER     => $subject ,
                 JwtClaim::SUBJECT    => $subject ,
                 JwtClaim::AUDIENCE   => $this->issuer ,
                 JwtClaim::ISSUED_AT  => $now ,
                 JwtClaim::EXPIRES_AT => $now + self::ASSERTION_TTL_SECONDS ,
             ] ,
-            key     : $key ,
-            alg     : JWTAlgorithm::RS256 ,
-            keyId   : $keyId
+            $key ,
+            $keyId
         ) ;
 
         try
@@ -476,7 +433,8 @@ class M2MApiClient
             throw new KeyfileInvalidException
             (
                 'Unable to reach the identity provider token endpoint: ' . $e->getMessage() ,
-                previous : $e instanceof Exception ? $e : null
+                0 ,
+                $e instanceof Exception ? $e : null
             ) ;
         }
 
@@ -523,7 +481,7 @@ class M2MApiClient
      * @throws KeyfileInvalidException
      * @throws GuzzleException
      */
-    public function patch( string $path , array $body ) :array
+    public function patch( string $path , array $body ) : array
     {
         return $this->call( HttpMethod::PATCH , $path , $body ) ;
     }
@@ -541,7 +499,7 @@ class M2MApiClient
      * @throws KeyfileInvalidException
      * @throws GuzzleException
      */
-    public function post( string $path , array $body ) :array
+    public function post( string $path , array $body ) : array
     {
         return $this->call( HttpMethod::POST , $path , $body ) ;
     }
@@ -559,7 +517,7 @@ class M2MApiClient
      * @throws KeyfileInvalidException
      * @throws GuzzleException
      */
-    public function put( string $path , array $body ) :array
+    public function put( string $path , array $body ) : array
     {
         return $this->call( HttpMethod::PUT , $path , $body ) ;
     }
@@ -582,7 +540,7 @@ class M2MApiClient
      *
      * @throws GuzzleException On network / non-401 failures.
      */
-    protected function call( string $method , string $path , ?array $body = null ) :array
+    protected function call( string $method , string $path , ?array $body = null ) : array
     {
         $response = $this->doRequest( $method , $path , $body , $this->getToken() ) ;
 
@@ -626,7 +584,7 @@ class M2MApiClient
      *                              an empty array when the body
      *                              is not a JSON object.
      */
-    protected function decodeResponse( Response $response ) :array
+    protected function decodeResponse( Response $response ) : array
     {
         $raw  = (string) $response->getBody() ;
         $data = json_decode( $raw , true ) ;
@@ -665,11 +623,11 @@ class M2MApiClient
      *
      * @throws GuzzleException
      */
-    protected function doRequest( string $method , string $path , ?array $body , string $token ) :Response
+    protected function doRequest( string $method , string $path , ?array $body , string $token ) : Response
     {
         $options =
         [
-            GuzzleOption::HEADERS =>
+            RequestOptions::HEADERS =>
             [
                 HttpHeader::AUTHORIZATION => AuthScheme::prefix( AuthScheme::BEARER ) . $token ,
                 HttpHeader::ACCEPT        => FileMimeType::JSON ,
@@ -685,5 +643,77 @@ class M2MApiClient
         $response = $this->http->request( $method , "$this->apiBaseUrl$path" , $options ) ;
 
         return $response ;
+    }
+
+    /**
+     * Builds and signs an RS256 JWT bearer assertion.
+     *
+     * Inlined here (rather than depending on `firebase/php-jwt`) to keep this PHP 7.4 compatibility branch
+     * dependency-light and to avoid pulling in the 6.x line which is flagged by a low-severity,
+     * disputed security advisory (CVE-2025-45769) that does not affect the RS256 signing path used here.
+     * The 7.x line that fixes the advisory requires PHP 8.0+.
+     *
+     * @param  array<string, mixed>     $claims The JWT payload claims.
+     * @param  string                   $key    The RSA private key in PEM format.
+     * @param  string                   $keyId  The `kid` header value.
+     * @return string                   The compact JWS (`header.payload.signature`, base64url).
+     *
+     * @throws KeyfileInvalidException  When the RSA private key cannot be parsed
+     *                                  or the OpenSSL signing operation fails.
+     */
+    private function signAssertion( array $claims , string $key , string $keyId ) : string
+    {
+        $header =
+        [
+            'typ' => 'JWT'             ,
+            'alg' => JWTAlgorithm::RS256 ,
+            'kid' => $keyId            ,
+        ] ;
+
+        $headerJson  = json_encode( $header ) ;
+        $payloadJson = json_encode( $claims ) ;
+
+        if( $headerJson === false || $payloadJson === false )
+        {
+            throw new KeyfileInvalidException( 'Unable to JSON-encode the JWT bearer assertion.' ) ;
+        }
+
+        $signingInput = self::base64UrlEncode( $headerJson ) . '.' . self::base64UrlEncode( $payloadJson ) ;
+
+        $privateKey = openssl_pkey_get_private( $key ) ;
+
+        if( $privateKey === false )
+        {
+            throw new KeyfileInvalidException
+            (
+                'Keyfile RSA private key cannot be parsed by OpenSSL: '
+                . ( openssl_error_string() ?: 'unknown error' )
+            ) ;
+        }
+
+        $signature = '' ;
+        $ok        = openssl_sign( $signingInput , $signature , $privateKey , OPENSSL_ALGO_SHA256 ) ;
+
+        if( $ok !== true )
+        {
+            throw new KeyfileInvalidException
+            (
+                'OpenSSL failed to sign the JWT bearer assertion: '
+                . ( openssl_error_string() ?: 'unknown error' )
+            ) ;
+        }
+
+        return $signingInput . '.' . self::base64UrlEncode( $signature ) ;
+    }
+
+    /**
+     * RFC 4648 §5 base64url encoding (URL-safe, no padding).
+     *
+     * @param  string $raw The raw bytes to encode.
+     * @return string      The base64url representation.
+     */
+    private static function base64UrlEncode( string $raw ) : string
+    {
+        return rtrim( strtr( base64_encode( $raw ) , '+/' , '-_' ) , '=' ) ;
     }
 }

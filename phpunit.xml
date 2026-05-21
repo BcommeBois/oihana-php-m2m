@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.0/phpunit.xsd"
+    xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/9.6/phpunit.xsd"
     backupGlobals="false"
-    backupStaticProperties="false"
+    backupStaticAttributes="false"
     beStrictAboutTestsThatDoNotTestAnything="true"
     beStrictAboutOutputDuringTests="true"
     bootstrap="vendor/autoload.php"
-    cacheDirectory=".phpunit.cache"
+    cacheResultFile=".phpunit.cache/test-results"
     cacheResult="false"
     colors="true"
     columns="max"
-    displayDetailsOnIncompleteTests="true"
-    displayDetailsOnSkippedTests="true"
-    displayDetailsOnTestsThatTriggerNotices="true"
-    displayDetailsOnTestsThatTriggerWarnings="true"
     executionOrder="depends,defects"
     failOnEmptyTestSuite="true"
     failOnIncomplete="true"
@@ -23,6 +19,7 @@
     failOnWarning="true"
     processIsolation="false"
     testdox="true"
+    convertDeprecationsToExceptions="true"
 >
     <testsuites>
         <testsuite name="Application">
@@ -30,10 +27,9 @@
         </testsuite>
     </testsuites>
 
-    <source>
+    <coverage>
         <include>
             <directory suffix=".php">./src</directory>
         </include>
-    </source>
-
+    </coverage>
 </phpunit>

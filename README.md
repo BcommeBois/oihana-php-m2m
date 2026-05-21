@@ -2,6 +2,28 @@
 
 ![Oihana PHP M2M](https://raw.githubusercontent.com/BcommeBois/oihana-php-m2m/main/assets/images/oihana-php-m2m-logo-inline-512x160.png)
 
+> ## ⚠️ Strongly discouraged — legacy compatibility branch
+>
+> **You are looking at the `compat/php-7.4` branch.** Its only reason to exist
+> is to unblock services pinned to a PHP version that has been **end-of-life
+> since 2022-11-28** and no longer receives security patches from the PHP team.
+>
+> Using this branch in production is **highly discouraged** :
+>
+> - PHP 7.4 itself is unmaintained — any CVE in the runtime stays unpatched.
+> - This branch only receives **security fixes for the M2M client itself** ;
+>   no new features, no upstream IdP integrations, no performance work.
+> - It ships an inlined RS256 signer instead of the audited `firebase/php-jwt`
+>   (because the only 7.4-compatible 6.x line is flagged by an open advisory).
+>   The inlined code is minimal and tested, but it is one less audited
+>   surface than `main`.
+>
+> **Migrate to [`main`](https://github.com/BcommeBois/oihana-php-m2m/tree/main)
+> (PHP 8.4+) as soon as your host operator allows it.** The public API of
+> `M2MApiClient` is identical, so the upgrade is `composer require
+> oihana/php-m2m:^1.0` and a PHP runtime bump — no code changes needed in
+> your application.
+
 Lightweight, OIDC-compliant **Machine-to-Machine (M2M) HTTP client** for APIs protected by JWT.
 
 Implements the OAuth 2.0 `urn:ietf:params:oauth:client-assertion-type:jwt-bearer` flow ([RFC 7521](https://datatracker.ietf.org/doc/html/rfc7521) + [RFC 7523](https://datatracker.ietf.org/doc/html/rfc7523)) so a service account can sign a short-lived JWT assertion with its own RSA key, exchange it at the identity provider's token endpoint for an access token, and call a protected API with `Authorization: Bearer …`.
@@ -24,12 +46,16 @@ Designed for [Zitadel](https://zitadel.com) out of the box, compatible with any 
 
 ## 📦 Installation
 
-> **Requires [PHP 8.4+](https://php.net/releases/)**
+> **PHP 7.4 compatibility branch** — this is the `compat/php-7.4` branch. It is
+> feature-equivalent to `1.0.0` on `main`, with downgraded language features
+> and a self-contained dependency surface (no `oihana/php-*` runtime deps).
+>
+> For the canonical PHP 8.4+ release, see the [`main`](https://github.com/BcommeBois/oihana-php-m2m/tree/main) branch.
 
 Install via [Composer](https://getcomposer.org):
 
 ```shell
-composer require oihana/php-m2m
+composer require oihana/php-m2m:dev-compat/php-7.4
 ```
 
 ## 🚀 Quick Start
@@ -167,7 +193,7 @@ Topics covered:
 - Keyfile format — full field reference, security considerations.
 - Token lifecycle — caching, proactive refresh, reactive retry on 401.
 - Error handling — exception catalogue + recommended recovery actions.
-- Tips & best practices — typed constants from `oihana/php-enums` + `oihana/php-files` to avoid magic strings.
+- Tips & best practices — string constants inlined under `oihana\m2m\enums`, `oihana\m2m\files` and `oihana\m2m\schema` to avoid magic strings.
 - Advanced — HTTP client injection, subclassing for instrumentation, non-Zitadel IdPs.
 
 ## 🧪 Running the tests
@@ -178,14 +204,6 @@ composer test
 ```
 
 The unit suite covers the constructor contract, the `fromKeyfile` factory, and the override semantics (including the configurable `tokenPath`). The full token-exchange path is integration-level and exercised end-to-end against a real identity provider.
-
-## 🛠 Generating the API documentation
-
-```shell
-composer doc
-```
-
-Generates the phpDocumentor API reference into `docs/`.
 
 ## 🪪 License
 
@@ -199,6 +217,9 @@ This project is licensed under the [Mozilla Public License 2.0 (MPL-2.0)](LICENS
 
 ## 🔗 Related libraries
 
-- [oihana/php-enums](https://github.com/BcommeBois/oihana-php-enums) — strongly-typed PHP constant enumerations (HTTP, JWT, OAuth, …)
-- [oihana/php-schema](https://github.com/BcommeBois/oihana-php-schema) — Schema.org-aligned data structures, including the `Keyfile` schema
-- [oihana/php-files](https://github.com/BcommeBois/oihana-php-files) — file system helpers and MIME type enums
+> Not pulled in by this branch (kept dependency-free for PHP 7.4 hosts), but
+> recommended as drop-in replacements once you can target PHP 8.4+ :
+>
+> - [oihana/php-enums](https://github.com/BcommeBois/oihana-php-enums) — strongly-typed PHP constant enumerations (HTTP, JWT, OAuth, …)
+> - [oihana/php-schema](https://github.com/BcommeBois/oihana-php-schema) — Schema.org-aligned data structures, including the `Keyfile` schema
+> - [oihana/php-files](https://github.com/BcommeBois/oihana-php-files) — file system helpers and MIME type enums

@@ -1,9 +1,10 @@
 {
     "name" : "oihana/php-m2m" ,
     "type" : "library" ,
-    "description" : "Lightweight, OIDC-compliant Machine-to-Machine (M2M) HTTP client for APIs protected by JWT — implements the OAuth 2.0 jwt-bearer flow (RFC 7521 + RFC 7523)." ,
+    "description" : "Lightweight, OIDC-compliant Machine-to-Machine (M2M) HTTP client for APIs protected by JWT — implements the OAuth 2.0 jwt-bearer flow (RFC 7521 + RFC 7523). PHP 7.4 compatibility branch." ,
     "keywords" : [
         "php" ,
+        "php74" ,
         "m2m" ,
         "machine-to-machine" ,
         "oauth2" ,
@@ -30,7 +31,6 @@
         "source" : "https://github.com/BcommeBois/oihana-php-m2m"
     } ,
     "scripts" : {
-        "doc"  : "rm -rf docs && mkdir docs && cp -r assets docs/assets && ./vendor/bin/phpdoc -c phpdoc.xml -v" ,
         "test" : "./vendor/bin/phpunit"
     } ,
     "autoload" : {
@@ -44,25 +44,15 @@
         }
     } ,
     "require" : {
-        "php"               : ">=8.4" ,
+        "php"               : ">=7.4" ,
         "ext-json"          : "*" ,
-        "firebase/php-jwt"  : "^7.0" ,
-        "guzzlehttp/guzzle" : "^7.8" ,
-        "oihana/php-enums"  : "dev-main" ,
-        "oihana/php-files"  : "dev-main" ,
-        "oihana/php-schema" : "dev-main"
+        "ext-openssl"       : "*" ,
+        "guzzlehttp/guzzle" : "^7.5"
     } ,
     "require-dev" : {
-        "ext-xdebug"             : "*" ,
-        "phpunit/phpunit"        : "^12" ,
-        "nunomaduro/collision"   : "^8.8" ,
-        "phpdocumentor/shim"     : "^3.8"
+        "phpunit/phpunit"      : "^9.6" ,
+        "nunomaduro/collision" : "^5.11"
     } ,
-    "minimum-stability" : "dev" ,
-    "prefer-stable" : true ,
-    "config" : {
-        "allow-plugins" : {
-            "phpdocumentor/shim" : true
-        }
-    }
+    "minimum-stability" : "stable" ,
+    "prefer-stable" : true
 }
