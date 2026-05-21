@@ -1,5 +1,18 @@
 # Oihana PHP M2M — Documentation (Français)
 
+> ⚠️ **Vous lisez la documentation de la branche legacy `compat/php-7.4`.**
+> L'utilisation de cette branche est **fortement déconseillée** — PHP 7.4 est en
+> fin de vie depuis le 2022-11-28 et ne reçoit plus de correctifs de sécurité.
+> Migrez vers [`main`](https://github.com/BcommeBois/oihana-php-m2m/tree/main)
+> (PHP 8.4+) dès que votre hébergeur le permet. L'API publique de
+> `M2MApiClient` est strictement identique : la migration se résume à un
+> `composer require` et à un bump du runtime, sans aucun changement de code
+> côté application. Certains extraits ci-dessous évoquent `oihana/php-enums` /
+> `php-files` / `php-schema` comme bonne pratique ; ces paquets **ne sont pas**
+> installés par cette branche (leurs constantes sont inlinées localement sous
+> `oihana\m2m\{enums,files,schema}`) et ne redeviennent pertinents qu'après
+> migration.
+
 > Client HTTP machine-à-machine (M2M) léger et conforme OIDC, pour APIs protégées par JWT.
 
 ## Sommaire

@@ -52,11 +52,52 @@ Designed for [Zitadel](https://zitadel.com) out of the box, compatible with any 
 >
 > For the canonical PHP 8.4+ release, see the [`main`](https://github.com/BcommeBois/oihana-php-m2m/tree/main) branch.
 
-Install via [Composer](https://getcomposer.org):
+This branch ships its own version line, suffixed with `-php74` so it
+never collides with the canonical `1.0.0` release on `main`. Pin to a
+tagged release rather than to the branch tip for reproducible builds :
+
+```shell
+composer require oihana/php-m2m:1.0.0-php74
+```
+
+Security fixes for this compat line are published as `1.0.x-php74` —
+you can follow them with a standard caret range :
+
+```json
+{
+    "require" : {
+        "oihana/php-m2m" : "~1.0.0-php74"
+    }
+}
+```
+
+Because Composer treats the `-php74` suffix as a pre-release identifier,
+your project's `composer.json` may need to relax its stability rules :
+
+```json
+{
+    "minimum-stability" : "dev" ,
+    "prefer-stable"     : true
+}
+```
+
+If you'd rather track the branch tip (unreleased fixes), you can also
+require it directly — note that you must use the `dev-` prefix Composer
+applies to non-tagged refs :
 
 ```shell
 composer require oihana/php-m2m:dev-compat/php-7.4
 ```
+
+Once your host operator allows PHP 8.4+, drop the `-php74` suffix and
+switch to the canonical tagged release :
+
+```shell
+composer require oihana/php-m2m:^1.0
+```
+
+No code change required — the public API of `M2MApiClient` is identical
+between the two branches.
 
 ## 🚀 Quick Start
 
