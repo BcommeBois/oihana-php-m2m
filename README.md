@@ -52,27 +52,37 @@ Designed for [Zitadel](https://zitadel.com) out of the box, compatible with any 
 >
 > For the canonical PHP 8.4+ release, see the [`main`](https://github.com/BcommeBois/oihana-php-m2m/tree/main) branch.
 
-This branch ships its own version line, suffixed with `-php74` so it
-never collides with the canonical `1.0.0` release on `main`. Pin to a
-tagged release rather than to the branch tip for reproducible builds :
+This branch ships its own version line, using a four-segment semver
+(`1.0.0.74`) where the trailing `74` encodes the PHP target. The format
+is fully parseable by Composer's version resolver, never collides with
+the canonical `1.0.0` release on `main`, and avoids any pre-release
+stability flag.
+
+Pin to a tagged release for reproducible builds :
 
 ```shell
-composer require oihana/php-m2m:1.0.0-php74
+composer require oihana/php-m2m:1.0.0.74
 ```
 
-Security fixes for this compat line are published as `1.0.x-php74` —
-you can follow them with a standard caret range :
+Security fixes for this compat line are published as `1.0.0.75`,
+`1.0.0.76`, … — you can follow them with a tilde range :
 
 ```json
 {
     "require" : {
-        "oihana/php-m2m" : "~1.0.0-php74"
+        "oihana/php-m2m" : "~1.0.0.74"
     }
 }
 ```
 
-Because Composer treats the `-php74` suffix as a pre-release identifier,
-your project's `composer.json` may need to relax its stability rules :
+If you'd rather track the branch tip (unreleased fixes), require the
+branch directly — note that you must use the `dev-` prefix Composer
+applies to non-tagged refs, and add a stability override since `dev-*`
+constraints are not "stable" :
+
+```shell
+composer require oihana/php-m2m:dev-compat/php-7.4
+```
 
 ```json
 {
@@ -81,16 +91,8 @@ your project's `composer.json` may need to relax its stability rules :
 }
 ```
 
-If you'd rather track the branch tip (unreleased fixes), you can also
-require it directly — note that you must use the `dev-` prefix Composer
-applies to non-tagged refs :
-
-```shell
-composer require oihana/php-m2m:dev-compat/php-7.4
-```
-
-Once your host operator allows PHP 8.4+, drop the `-php74` suffix and
-switch to the canonical tagged release :
+Once your host operator allows PHP 8.4+, drop the `1.0.0.74` line and
+switch to the canonical tagged release on `main` :
 
 ```shell
 composer require oihana/php-m2m:^1.0

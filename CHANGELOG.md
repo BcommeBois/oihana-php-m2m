@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
-## [1.0.0-php74] - 2026-05-21 — `compat/php-7.4` branch
+## [1.0.0.74] - 2026-05-21 — `compat/php-7.4` branch
 
 PHP 7.4 compatibility branch — feature-equivalent to `1.0.0` on `main`, but with
 downgraded language features and a self-contained dependency surface so it can
